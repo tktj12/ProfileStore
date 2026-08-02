@@ -393,11 +393,19 @@ local function SessionToken(store_name, profile_key, is_mock)
 
 end
 
+local function CopyBuffer(b)
+	local new = buffer.create(buffer.len(b))
+	buffer.copy(new, 0, b)
+	return new
+end
+
 local function DeepCopyTable(t)
 	local copy = {}
 	for key, value in pairs(t) do
 		if type(value) == "table" then
 			copy[key] = DeepCopyTable(value)
+		elseif type(value) == "buffer" then
+			copy[key] = CopyBuffer(value)
 		else
 			copy[key] = value
 		end
@@ -411,6 +419,8 @@ local function ReconcileTable(target, template)
 			if target[k] == nil then
 				if type(v) == "table" then
 					target[k] = DeepCopyTable(v)
+				elseif type(v) == "buffer" then
+					target[k] = CopyBuffer(v)
 				else
 					target[k] = v
 				end
